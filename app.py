@@ -1,11 +1,9 @@
 import streamlit as st
 import leafmap.foliumap as leafmap
 
-st.set_page_config(layout="wide")
-
 markdown = """
-Web App URL: <https://olilamm-thinkgreen.streamlit.app/>
-GitHub Repository: <https://github.com/olilamm/thinkgreen-streamlit.git>
+Web App URL: <https://geotemplate.streamlit.app>
+GitHub Repository: <https://github.com/giswqs/streamlit-multipage-template>
 """
 
 st.sidebar.title("About")
@@ -14,39 +12,25 @@ logo = "https://i.imgur.com/UbOXYAU.png"
 st.sidebar.image(logo)
 
 
-st.title("Searching Basemaps")
-st.markdown(
-    """
-This app is a demonstration of searching and loading basemaps from [xyzservices](https://github.com/geopandas/xyzservices) and [Quick Map Services (QMS)](https://github.com/nextgis/quickmapservices). Selecting from 1000+ basemaps with a few clicks.  
-"""
-)
+st.title("Interactive Map")
 
-with st.expander("See demo"):
-    st.image("https://i.imgur.com/0SkUhZh.gif")
+st.write("To add a basemap, you can either select one from the dropdown menu or enter a custom URL.")
 
-row1_col1, row1_col2 = st.columns([3, 1])
-width = None
-height = 800
-tiles = None
+col1, col2 = st.columns([4, 1])
+options = list(leafmap.basemaps.keys())
+index = options.index("OpenTopoMap")
 
-with row1_col2:
+with col2:
 
-    checkbox = st.checkbox("Search Quick Map Services (QMS)")
-    keyword = st.text_input("Enter a keyword to search and press Enter:")
-    empty = st.empty()
+    basemap = st.selectbox("Select a basemap:", options, index)
+    url = st.text_input("Enter custom URL:")
 
-    if keyword:
-        options = leafmap.search_xyz_services(keyword=keyword)
-        if checkbox:
-            options = options + leafmap.search_qms(keyword=keyword)
+with col1:
 
-        tiles = empty.multiselect("Select XYZ tiles to add to the map:", options)
-
-    with row1_col1:
-        m = leafmap.Map()
-
-        if tiles is not None:
-            for tile in tiles:
-                m.add_xyz_service(tile)
-
-        m.to_streamlit(width, height)
+    m = leafmap.Map(locate_control=True, latlon_control=True, draw_export=True, minimap_control=True)
+    if url:
+        m.add_tile_layer(url, name="Custom Basemap", attribution="  ")
+    else:
+        m.add_basemap(basemap)
+        
+    m.to_streamlit(height=700)
